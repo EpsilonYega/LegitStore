@@ -1,0 +1,8 @@
+1
+/var/lib/postgresql/data/pg_keycloak_data
+1730195600
+5432
+/var/run/postgresql
+*
+   715768         0
+ready   
