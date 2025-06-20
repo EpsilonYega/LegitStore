@@ -12,10 +12,19 @@ export class ProductService {
   }
 
   getProducts(): Observable<Array<Product>> {
+    // console.log(this.httpClient.get<Array<Product>>('http://localhost:9000/api/product'))
     return this.httpClient.get<Array<Product>>('http://localhost:9000/api/product');
   }
 
   createProduct(product: Product): Observable<Product> {
     return this.httpClient.post<Product>('http://localhost:9000/api/product', product);
+  }
+
+  searchProducts(query: string): Observable<Product[]> {
+    return this.httpClient.get<Product[]>(`http://localhost:9000/api/product/search/${query}`);
+  }
+
+  findProductsByCategory(query: string): Observable<Product[]> {
+    return this.httpClient.get<Product[]>(`http://localhost:9000/api/product/category/${query}`);
   }
 }

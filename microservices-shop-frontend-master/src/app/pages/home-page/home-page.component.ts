@@ -30,6 +30,18 @@ export class HomePageComponent implements OnInit {
   orderSuccess = false;
   orderFailed = false;
 
+  searchQuery: string = '';
+  isSearching = false;
+
+  selectedCategory: string | null = null;
+
+  currentSlide = 0;
+  slides = [
+    { image: '/slider-main/jlow.png', alt: 'Акция 1' },
+    { image: '/slider-main/jordan.png', alt: 'Акция 2' },
+    { image: '/slider-main/vultureshoodie.png', alt: 'Акция 3' }
+  ];
+
   ngOnInit(): void {
     this.oidcSecurityService.isAuthenticated$.subscribe(
       ({isAuthenticated}) => {
@@ -40,7 +52,77 @@ export class HomePageComponent implements OnInit {
             this.products = product;
           })
       }
-    )
+    );
+    
+    setInterval(() => this.nextSlide(), 5000);
+  }
+
+  onSearch(): void {
+    if (this.searchQuery.trim()) {
+      this.isSearching = true; 
+      this.productService.searchProducts(this.searchQuery.trim())
+        .subscribe({
+          next: (products) => {
+            this.products = products;
+            this.orderSuccess = false;
+            this.orderFailed = false;
+          },
+          error: (err) => {
+            console.error('Ошибка поиска:', err);
+            this.products = [];
+          }
+        });
+    } else {
+      this.isSearching = false; 
+    }
+  }
+
+  filterByCategory(category: string): void {
+    this.selectedCategory = category;
+    this.isSearching = true;
+    this.productService.findProductsByCategory(category)
+      .subscribe({
+        next: (products) => {
+          this.products = products;
+          this.orderSuccess = false;
+          this.orderFailed = false;
+        },
+        error: (err) => {
+          console.error('Ошибка фильтрации:', err);
+          this.products = [];
+        }
+      });
+  }
+
+  clearFilters(): void {
+    this.selectedCategory = null;
+    this.isSearching = false;
+    this.searchQuery = '';
+    this.productService.getProducts()
+      .subscribe(products => {
+        this.products = products;
+      });
+  }
+
+  getCategoryName(categoryKey: string): string {
+    const categoryNames: {[key: string]: string} = {
+      'clothing': 'Одежда',
+      'shoes': 'Обувь',
+      'accessories': 'Аксессуары'
+    };
+    return categoryNames[categoryKey] || categoryKey;
+  }
+
+  nextSlide(): void {
+    this.currentSlide = (this.currentSlide + 1) % this.slides.length;
+  }
+
+  prevSlide(): void {
+    this.currentSlide = (this.currentSlide - 1 + this.slides.length) % this.slides.length;
+  }
+
+  goToSlide(index: number): void {
+    this.currentSlide = index;
   }
 
   goToCreateProductPage() {
@@ -68,11 +150,17 @@ export class HomePageComponent implements OnInit {
           userDetails: userDetails
         }
 
-        this.orderService.orderProduct(order).subscribe(() => {
-          this.orderSuccess = true;
-        }, error => {
-          this.orderFailed = false;
-        })
+        this.orderService.orderProduct(order).subscribe({
+          next: () => {
+            this.orderSuccess = true;
+            this.orderFailed = false;
+          },
+          error: (error) => {
+            this.orderFailed = true;
+            this.orderSuccess = false;
+            console.error('Ошибка при заказе:', error);
+          }
+        });
       }
     })
   }

@@ -1,0 +1,56 @@
+plugins {
+    id 'org.springframework.boot' version '3.3.4'
+    id 'io.spring.dependency-management' version '1.1.6'
+    id 'java'
+}
+group = 'com.fullstack'
+version = '0.0.1-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.cloud:spring-cloud-dependencies:2023.0.1"
+    }
+}
+
+project(':api-gateway') {
+
+}
+
+project(':product-service') {
+
+}
+
+project(':order-service') {
+
+}
+
+project(':inventory-service') {
+
+}
+
+project(':api') {
+    
+}
+
+bootJar {
+    image {
+        name = "pepsavkid/new-${rootProject.name}"
+        builder = "dashaun/builder:tiny"
+        publish = true
+    }
+    docker {
+        publishRegistry {
+            username = "pepsavkid"
+            password = project.findProperty("dockerPassword") ?: ""
+        }
+    }
+    excludes = ['org.projectlombok:lombok']
+}

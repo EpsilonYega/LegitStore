@@ -27,4 +27,8 @@ public class Product {
     private String skuCode;
     @Column
     private BigDecimal price;
+    @Column
+    private String imageSrc;
+    @Column
+    private String category;
 }

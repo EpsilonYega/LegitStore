@@ -14,6 +14,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/product")
 @RequiredArgsConstructor
+@Slf4j
 public class ProductController {
 
     private final ProductService productService;
@@ -27,13 +28,16 @@ public class ProductController {
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public List<ProductResponse> getAllProducts() {
-//        try {
-//            Thread.sleep(5000);
-//        }
-//        catch (InterruptedException e) {
-//            throw new RuntimeException(e);
-//        }
         return productService.getAllProducts();
     }
 
+    @GetMapping("/search/{query}")
+    public List<ProductResponse> getAllProductsByQuery(@PathVariable("query") String query) {
+        return productService.getAllProductsByQuery(query);
+    }
+
+    @GetMapping("/category/{category}")
+    public List<ProductResponse> getAllProductsByCategory(@PathVariable("category") String category) {
+        return productService.getAllProductsByCategory(category);
+    }
 }

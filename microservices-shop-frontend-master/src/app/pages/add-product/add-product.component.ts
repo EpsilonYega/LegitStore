@@ -31,7 +31,8 @@ export class AddProductComponent {
         skuCode: this.addProductForm.get('skuCode')?.value,
         name: this.addProductForm.get('name')?.value,
         description: this.addProductForm.get('description')?.value,
-        price: this.addProductForm.get('price')?.value
+        price: this.addProductForm.get('price')?.value,
+        imageSrc: this.addProductForm.get('sku_code')?.value,
       }
       this.productService.createProduct(product).subscribe(product => {
         this.productCreated = true;

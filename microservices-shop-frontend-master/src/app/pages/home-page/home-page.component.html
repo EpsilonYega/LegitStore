@@ -1,50 +1,186 @@
-<main>
-  <div class="p-4">
-    <div class="flex justify-between items-center mb-4">
-      <h1 class="text-2xl font-bold mb-4">Products ({{ products.length }})</h1>
-      @if (isAuthenticated) {
-        <button class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 ml-4"
-                (click)="goToCreateProductPage()">
-          Create Product
+<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+  <div class="bg-white p-4 border-b flex items-center justify-between">
+    <ul class="flex space-x-6 overflow-x-auto whitespace-nowrap">
+      <li><a href="#" class="text-black hover:text-blue-600">Новинки</a></li>
+      <li>
+        <a href="#" class="text-black hover:text-blue-600" 
+           (click)="filterByCategory('clothing'); $event.preventDefault()"
+           [class.text-blue-600]="selectedCategory === 'clothing'">
+          Одежда
+        </a>
+      </li>
+      <li>
+        <a href="#" class="text-black hover:text-blue-600" 
+           (click)="filterByCategory('shoes'); $event.preventDefault()"
+           [class.text-blue-600]="selectedCategory === 'shoes'">
+          Обувь
+        </a>
+      </li>
+      <li>
+        <a href="#" class="text-black hover:text-blue-600" 
+           (click)="filterByCategory('accessories'); $event.preventDefault()"
+           [class.text-blue-600]="selectedCategory === 'accessories'">
+          Аксессуары
+        </a>
+      </li>
+      <li><a href="#" class="text-black hover:text-blue-600">Бренды</a></li>
+      <li><a href="#" class="text-black hover:text-blue-600">Спорт</a></li>
+    </ul>
+    <div class="ml-4">
+      <form class="relative w-[300px]" (ngSubmit)="onSearch()">
+        <input 
+          type="text" 
+          placeholder="Поиск" 
+          class="w-full h-[42px] pl-[10px] border-2 border-black rounded-[5px] outline-none bg-white text-black"
+          [(ngModel)]="searchQuery"
+          name="searchQuery"
+        >
+        <button 
+          type="submit"
+          class="absolute top-0 right-0 w-[42px] h-[42px] border-2 border-transparent bg-black rounded-r-[5px] cursor-pointer hover:bg-gray-700 hover:border-black transition-colors"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mx-auto text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
         </button>
+      </form>
+    </div>
+  </div>
+
+  @if (isSearching) {
+    <div class="p-4">
+      <div class="flex justify-between items-center mb-4">
+        <h1 class="text-2xl font-bold mb-4">
+          @if (selectedCategory) {
+            {{ getCategoryName(selectedCategory) }} ({{ products.length }})
+          } @else {
+            Результаты поиска ({{ products.length }})
+          }
+        </h1>
+        @if (isSearching) {
+          <button class="text-blue-500 hover:underline" (click)="clearFilters()">
+            Сбросить фильтры
+          </button>
+        }
+      </div>
+      
+      @if (products.length > 0) {
+        @if (orderSuccess) {
+          <h4 class="text-green-500 font-bold">Заказ успешно добавлен</h4>
+        } @else if (orderFailed) {
+          <h4 class="text-red-500 font-bold">Заказ прерван, попробуйте позже.</h4>
+          @if(quantityIsNull) {
+            <h4 class="text-red-500 font-bold">Количество товаров не указано</h4>
+          }
+        }
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          @for (product of products; track product.id) {
+            <div class="p-4 bg-gray-100 rounded-lg shadow-sm">
+              <img src="/products/{{ product.imageSrc }}" alt="{{ product.name }}" class="w-full h-80 object-cover mb-4">
+              <div class="mb-2">
+                <span class="font-semibold">{{ product.name }}</span>
+              </div>
+              <div class="mb-2">
+                <span class="text-gray-600">Цена: {{ product.price }}</span>
+              </div>
+              <div class="mb-4">
+                <label class="block mb-1">Количество:</label>
+                <input type="number" #quantityInput class="w-full p-2 border rounded"/>
+              </div>
+              <button class="w-full bg-white text-black px-4 py-2 rounded-lg border-2 border-black hover:text-blue-600"
+                      (click)="orderProduct(product, quantityInput.value)">
+                Заказать
+              </button>
+            </div>
+          }
+        </div>
+      } @else {
+        <p class="text-red-500 font-semibold">Товары не найдены!</p>
       }
     </div>
-    @if (products.length > 0) {
-      @if (orderSuccess) {
-        <h4 class="text-green-500 font-bold">Order Placed Successfully</h4>
-      } @else if (orderFailed) {
-        <h4 class="text-red-500 font-bold">Order Failed, please try again later</h4>
-        @if(quantityIsNull) {
-          <h4 class="text-red-500 font-bold">Quantity cannot be null</h4>
+  }
+  @else {
+    <div class="relative w-full overflow-hidden mt-4 h-[50rem]"> 
+      <div class="flex transition-transform duration-300 ease-in-out" 
+          [style.transform]="'translateX(-' + (currentSlide * 100) + '%)'">
+        @for (slide of slides; track slide.image) {
+          <div class="w-full flex-shrink-0 h-full"> 
+            <img [src]="slide.image" [alt]="slide.alt" class="w-full h-full object-cover rounded-lg"> 
+          </div>
         }
-      }
-      <ul class="list-disc list-inside">
-        @for (product of products; track product.id) {
-          <li class="mb-2 p-4 bg-gray-100 rounded-lg shadow-sm flex justify-between items-center">
-            <div>
-              <span class="font-semibold">{{ product.name }}</span> -
-              <span class="text-gray-600">
-                Price: {{ product.price }}
-              </span>
-              <br/>
-              <span >
-                Quantity: <input type="number" #quantityInput/>
-              </span>
-              <br/>
+      </div>
+      
+      <button class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/30 text-white p-2 rounded-full hover:bg-black/50" 
+              (click)="prevSlide()">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+      <button class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/30 text-white p-2 rounded-full hover:bg-black/50" 
+              (click)="nextSlide()">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+      
+      <div class="flex justify-center space-x-2 mt-2">
+        @for (slide of slides; track slide.image; let i = $index) {
+          <button class="w-3 h-3 rounded-full" 
+                  [class.bg-gray-800]="i === currentSlide"
+                  [class.bg-gray-300]="i !== currentSlide"
+                  (click)="goToSlide(i)">
+          </button>
+        }
+      </div>
+    </div>
+    
+    <div class="p-4">
+      <div class="flex justify-between items-center mb-4">
+        <h1 class="text-2xl font-bold mb-4">Товары ({{ products.length }})</h1>
+        @if (isAuthenticated) {
+          <button class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 ml-4"
+                  (click)="goToCreateProductPage()">
+            Create Product
+          </button>
+        }
+      </div>
+      @if (products.length > 0) {
+        @if (orderSuccess) {
+          <h4 class="text-green-500 font-bold">Заказ успешно добавлен</h4>
+        } @else if (orderFailed) {
+          <h4 class="text-red-500 font-bold">Заказ прерван, попробуйте позже.</h4>
+          @if(quantityIsNull) {
+            <h4 class="text-red-500 font-bold">Количество товаров не указано</h4>
+          }
+        }
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          @for (product of products; track product.id) {
+            <div class="p-4 bg-gray-100 rounded-lg shadow-sm">
+              <img src="/products/{{ product.imageSrc }}" alt="{{ product.name }}" class="w-full h-80 object-cover mb-4">
+              <div class="mb-2">
+                <span class="font-semibold">{{ product.name }}</span>
+              </div>
+              <div class="mb-2">
+                <span class="text-gray-600">Цена: {{ product.price }}</span>
+              </div>
+              <div class="mb-4">
+                <label class="block mb-1">Количество:</label>
+                <input type="number" #quantityInput class="w-full p-2 border rounded"/>
+              </div>
+              <button class="w-full bg-white text-black px-4 py-2 rounded-lg border-2 border-black hover:text-blue-600"
+                      (click)="orderProduct(product, quantityInput.value)">
+                Заказать
+              </button>
             </div>
-            <button class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 ml-4"
-                    (click)="orderProduct(product, quantityInput.value)">
-              Order Now
-            </button>
-          </li>
-        }
-      </ul>
-    } @else if (products.length === 100) {
-      <span class="text-sm text-gray-700">
-      Click <a class="text-blue-500 hover:underline cursor-pointer">Load More</a> to see more products
-    </span>
-    } @else {
-      <p class="text-red-500 font-semibold">No products found!</p>
-    }
-  </div>
+          }
+        </div>
+      } @else if (products.length === 100) {
+        <span class="text-sm text-gray-700">
+        Click <a class="text-blue-500 hover:underline cursor-pointer">Load More</a> to see more products
+        </span>
+      } @else {
+        <p class="text-red-500 font-semibold">Товары не найдены!</p>
+      }
+    </div>
+  }
 </main>

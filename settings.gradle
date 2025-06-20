@@ -1,0 +1,2 @@
+include ':api-gateway', ':product-service', ':order-service', ':inventory-service', ':api'
+rootProject.name='fullstack'
